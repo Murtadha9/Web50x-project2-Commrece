@@ -1,0 +1,89 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+  <h3>Listing : {{listingData.title}}</h3>
+ 
+{% if message %}
+{% if update %}
+<div class="alert alert-success" role="alert">
+  {{message}}
+</div>
+{%else%}
+<div class="alert alert-danger" role="alert">
+  {{message}}
+</div>
+{%endif%}
+{%endif%}
+{% if not listingData.isActive and user == listingData.price.user %}
+<div class="alert alert-success" role="alert">
+  Wooow ! You win the Auction
+</div>
+{%endif%}
+{% if isListInWatchlist %}
+<form action="{%url 'removeWatchlist' id=listingData.id %}" method="POST">
+  {%csrf_token%}
+  <button type="submit" class="btn btn-danger m-3 p-2">Remove from Watchlist</button>
+</form>
+{%else%}
+<form action="{%url 'addWatchlist' id=listingData.id %}" method="POST">
+  {%csrf_token%}
+  <button type="submit" class="btn btn-success m-3 p-2">Add in Watchlist</button>
+</form>
+{%endif%}
+
+<div class="list">
+  <img src="{{listingData.imageURL}}" alt="" style="width: 400px;height: 400px;">
+</div>
+<p>{{listingData.description}}</p>
+
+<h1>${{listingData.price.bid}}</h1>
+
+{% if user.is_authenticated and listingData.isActive %}
+{% if currentUser != listingData.owner %}
+<form action="{% url 'addBid' id=listingData.id%}" method="POST">
+  {% csrf_token %}
+  <input class="form-control" type="number" id="bid" name="bid" placeholder="Bid" min="0"><br>
+  <button type="submit" class="btn btn-success">Place Bid</button>
+</form>
+{% else %}
+<form action="{% url 'closeBid' id=listingData.id%}" method="POST">
+  {% csrf_token %}
+  <input class="form-control" type="number" id="bid" name="bid" placeholder="Bid" min="0" disabled><br>
+  <button type="submit" class="btn btn-danger">Close</button>
+</form>
+{% endif %}
+{% endif %}
+<br>
+<h2>Details</h2>
+<br>
+<ul>
+  <li>Listed by: {{listingData.owner}}</li>
+  <li>Category: {{listingData.category}}</li>
+ 
+</ul>
+
+
+<form action="{%url 'comment' id=listingData.id %}" method="POST">
+  {%csrf_token%}
+  <label for="">Comment </label> 
+
+  {% if listingData.isActive %}
+  <input class="form-control" type="text" id="comment" name="comment" placeholder="Comment" maxlength="100">
+  <br>
+  <button type="submit" class="btn btn-success">Comment</button>
+  {%endif%}
+</form>
+
+<br>
+<ul class="list-group">
+  {% for comment in comments %}
+  <li class="list-group-item"> 
+    {{comment.message}}
+    <br>
+   <p> comment by  <b> {{comment.person}}</b></p>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
